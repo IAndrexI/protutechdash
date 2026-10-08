@@ -107,6 +107,16 @@
             <input type="file" id="import-file-input" accept=".json" style="display:none;" onchange="window.ProtutechDash.importConfig(event)">
           </label>
         </div>
+
+        <!-- Administration Section -->
+        <div class="nav-section">
+          <div class="nav-section-title">Administration</div>
+          <div class="nav-item" id="nav-admin-btn" onclick="window.ProtutechDash.openAdminModal()">
+            <span class="icon">🛡️</span>
+            <span>Disallowed Websites</span>
+            <span class="badge-count" id="admin-blocked-count" style="background: rgba(239, 68, 68, 0.2); color: #f87171;">0</span>
+          </div>
+        </div>
       </div>
 
       <div class="sidebar-footer">
@@ -157,6 +167,11 @@
             <option value="cyber-emerald">Cyber Emerald</option>
             <option value="sunset-ember">Sunset Ember</option>
           </select>
+
+          <!-- Admin Mode Toggle Button -->
+          <button class="header-btn" id="header-admin-btn" onclick="window.ProtutechDash.openAdminModal()" title="Admin: Select disallowed websites & apps">
+            <span id="header-admin-icon">🔒</span> <span id="header-admin-text">Admin</span>
+          </button>
 
           <!-- Light/Dark Mode Toggle -->
           <button class="header-btn" id="theme-toggle-btn" title="Toggle Light / Dark Mode">
@@ -525,6 +540,100 @@ export default function ProtutechSwitcher() {
       <div class="runner-iframe-wrapper">
         <iframe id="runner-iframe" class="runner-iframe" src="about:blank" sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
       </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: ADMIN ACCESS POLICY & DISALLOWED WEBSITES
+       ==================================================================== -->
+  <div class="modal-backdrop" id="admin-modal">
+    <div class="modal-box" style="max-width: 680px;">
+      
+      <!-- Locked Screen (PIN Authentication) -->
+      <div id="admin-auth-screen" class="admin-lock-screen">
+        <div class="lock-icon">🔒</div>
+        <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 8px;">Admin Security Check</h2>
+        <p style="font-size: 13.5px; color: var(--text-muted); max-width: 440px; margin: 0 auto 20px auto; line-height: 1.5;">
+          Access restricted. Enter your admin passkey to configure which websites and applications are <strong>disallowed from appearing in the suite list</strong>.
+        </p>
+
+        <form id="admin-login-form" onsubmit="window.ProtutechDash.submitAdminPin(event)">
+          <div style="max-width: 280px; margin: 0 auto 16px auto;">
+            <input type="password" id="admin-pin-input" class="form-input" placeholder="Enter Admin Passkey (default: protutech2026)" required style="text-align: center; font-size: 14px; letter-spacing: 2px;">
+          </div>
+          <div style="display: flex; justify-content: center; gap: 10px;">
+            <button type="button" class="header-btn" onclick="document.getElementById('admin-modal').classList.remove('active')">Cancel</button>
+            <button type="submit" class="header-btn primary">Unlock Admin Panel</button>
+          </div>
+          <div style="margin-top: 14px; font-size: 11.5px; color: var(--text-dim);">
+            Default setup passkey: <code>protutech2026</code> (can be changed inside)
+          </div>
+        </form>
+      </div>
+
+      <!-- Unlocked Panel (Disallowed Websites Manager) -->
+      <div id="admin-panel-screen" style="display: none;">
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="admin-badge unlocked">🛡️ ADMIN UNLOCKED</span>
+            <h2 class="modal-title" style="font-size: 17px;">Disallowed Websites & Apps Policy</h2>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button class="header-btn" onclick="window.ProtutechDash.lockAdmin()" style="font-size: 11.5px; padding: 4px 8px;">Lock 🔒</button>
+            <button class="modal-close-btn" onclick="document.getElementById('admin-modal').classList.remove('active')">&times;</button>
+          </div>
+        </div>
+
+        <div class="modal-body" style="padding: 20px 24px;">
+          <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+            Select which websites and applications are <strong>not allowed to be shown in the launcher list</strong>. Disallowed websites will be completely hidden from users, excluded from search results, and rejected by the URL detector.
+          </p>
+
+          <!-- Quick Disallow URL Input -->
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label class="form-label">Disallow Specific protutech.vip Website or Subdomain</label>
+            <div style="display: flex; gap: 10px;">
+              <input type="text" id="admin-custom-disallow-input" class="form-input" placeholder="e.g. proxmox.protutech.vip or nade.protutech.vip">
+              <button class="header-btn" style="color: #f87171; border-color: rgba(239, 68, 68, 0.4); flex-shrink: 0;" onclick="window.ProtutechDash.addCustomDisallow()">
+                + Disallow Website
+              </button>
+            </div>
+          </div>
+
+          <!-- Policy Settings Options -->
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--bg-badge); border-radius: var(--radius-md); border: 1px solid var(--border-subtle); margin-bottom: 18px;">
+            <div>
+              <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">Admin Preview Mode</div>
+              <div style="font-size: 11px; color: var(--text-dim);">Show disallowed apps on admin grid with red outline</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="admin-preview-mode-checkbox" onchange="window.ProtutechDash.toggleAdminPreview(this.checked)">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <!-- Apps & Websites List with Disallow Toggles -->
+          <h4 style="font-size: 13.5px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+            <span>Website Permissions (<span id="admin-allowed-count">0</span> Allowed, <span id="admin-blocked-summary" style="color: #f87171;">0</span> Disallowed)</span>
+            <button class="header-btn" onclick="window.ProtutechDash.clearAllDisallowed()" style="font-size: 11px; padding: 2px 8px;">Reset All to Allowed</button>
+          </h4>
+
+          <div id="admin-disallow-list" style="max-height: 340px; overflow-y: auto; padding-right: 4px;">
+            <!-- Populated by src/app.js -->
+          </div>
+
+          <!-- Security Passkey Change -->
+          <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 12px; color: var(--text-dim);">Admin Protection: Active</span>
+            <button class="header-btn" onclick="window.ProtutechDash.changeAdminPin()" style="font-size: 11.5px; padding: 4px 10px;">Change Admin Passkey</button>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="header-btn primary" onclick="document.getElementById('admin-modal').classList.remove('active')">Save & Apply Policy</button>
+        </div>
+      </div>
+
     </div>
   </div>
 

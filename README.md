@@ -34,6 +34,13 @@
   - **Auto-Derivation**: Automatically maps subdomains to their service metadata (Name, 2-letter Adobe mnemonic badge, Category, Theme color, and Supported platforms).
   - Automatically scrolls to and highlights existing apps with a glowing pulse animation if already present, or creates a new card if newly discovered.
 
+- 🛡️ **Admin Disallowed Websites Policy**:
+  - Protected by an **Admin Passkey** (default: `protutech2026`, customizable inside the panel).
+  - Admins can select **which websites and apps are NOT allowed to be shown in the launcher list**.
+  - Disallowed websites are completely removed from the dashboard grid, search results, category filters, and quick chips for standard users.
+  - If a user tries to type a disallowed URL into the detector, the request is rejected with an administrator policy restriction notice.
+  - Includes **Admin Preview Mode** allowing administrators to view disallowed apps with red indicator borders.
+
 - 🔒 **Security Whitelist (Launch Only My Apps)**:
   - Whitelist mechanism guaranteeing the launcher **only opens authorized Protutech apps and endpoints** (`*.protutech.vip`, `protutech://`, local environments), preventing external malicious injections.
 

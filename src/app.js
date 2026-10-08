@@ -14,9 +14,16 @@
   const STORAGE_KEY_PLATFORM_FILTER = 'protutech_platform_filter_mode';
   const STORAGE_KEY_SIMULATED_PLATFORM = 'protutech_simulated_platform';
   const STORAGE_KEY_VIEW_MODE = 'protutech_view_mode';
+  const STORAGE_KEY_ADMIN_PIN = 'protutech_admin_pin';
+  const STORAGE_KEY_DISALLOWED_SITES = 'protutech_admin_disallowed_sites';
+  const STORAGE_KEY_ADMIN_PREVIEW = 'protutech_admin_preview';
 
   // State
   let apps = [];
+  let disallowedSites = JSON.parse(localStorage.getItem(STORAGE_KEY_DISALLOWED_SITES) || '[]');
+  let adminPin = localStorage.getItem(STORAGE_KEY_ADMIN_PIN) || 'protutech2026';
+  let isAdminUnlocked = sessionStorage.getItem('protutech_admin_unlocked') === 'true';
+  let adminPreviewMode = localStorage.getItem(STORAGE_KEY_ADMIN_PREVIEW) === 'true';
   let currentCategory = 'all';
   let currentSearchQuery = '';
   let viewMode = localStorage.getItem(STORAGE_KEY_VIEW_MODE) || 'grid';
@@ -266,6 +273,25 @@
   };
 
   /**
+   * Checks if an app, domain, or subdomain is on the admin disallowed list
+   */
+  function isWebsiteDisallowed(app) {
+    if (!app) return false;
+    if (app.id && disallowedSites.includes(app.id)) return true;
+    if (app.url) {
+      try {
+        let u = app.url;
+        if (!u.startsWith('http://') && !u.startsWith('https://')) u = 'https://' + u;
+        const host = new URL(u).hostname.toLowerCase();
+        if (disallowedSites.includes(host)) return true;
+        const sub = host.replace('.protutech.vip', '');
+        if (disallowedSites.includes(sub)) return true;
+      } catch (e) {}
+    }
+    return false;
+  }
+
+  /**
    * Strictly validates that the URL belongs to protutech.vip domain
    * and parses/derives app metadata.
    */
@@ -302,6 +328,14 @@
       subdomain = host.replace('.protutech.vip', '').split('.').pop();
     } else {
       subdomain = 'main';
+    }
+
+    // ADMIN DISALLOW POLICY CHECK
+    if (isWebsiteDisallowed({ url: `https://${host}`, id: `protutech-${subdomain}` })) {
+      return {
+        valid: false,
+        error: `Website "${host}" has been restricted by an administrator policy and cannot be shown in the launcher list.`
+      };
     }
 
     // Check if in known registry
@@ -498,6 +532,12 @@
 
     // Filter & Sort
     let visibleApps = apps.filter(app => {
+      // Admin Disallow Policy filter
+      const isBlocked = isWebsiteDisallowed(app);
+      if (isBlocked && (!isAdminUnlocked || !adminPreviewMode)) {
+        return false;
+      }
+
       // Hidden filter
       if (app.hidden) return false;
 
@@ -552,12 +592,14 @@
     appsGrid.innerHTML = visibleApps.map((app, index) => {
       const isInstalled = app.installed !== false;
       const isPlatformCompatible = (app.platforms || []).includes(effectivePlatform) || (app.platforms || []).includes('web');
+      const isBlocked = isWebsiteDisallowed(app);
       
       // Determine Grayed-Out / Incompatible status
       const cardClasses = [
         'app-card',
         isInstalled ? 'installed' : 'not-installed',
         isPlatformCompatible ? '' : 'incompatible-platform',
+        isBlocked ? 'admin-blocked' : '',
         app.pinned ? 'is-pinned' : ''
       ].filter(Boolean).join(' ');
 
@@ -573,7 +615,9 @@
 
       // Status Badge
       let statusBadgeHtml = '';
-      if (!isInstalled) {
+      if (isBlocked) {
+        statusBadgeHtml = '<span class="status-badge not-installed" style="color:#f87171; border-color:rgba(239,68,68,0.5);">🚫 Disallowed</span>';
+      } else if (!isInstalled) {
         statusBadgeHtml = '<span class="status-badge not-installed">Not Installed</span>';
       } else if (!isPlatformCompatible) {
         statusBadgeHtml = `<span class="status-badge incompatible">⚠️ ${effectivePlatform === 'mobile' ? 'Desktop' : 'Mobile'} Only</span>`;
@@ -670,9 +714,10 @@
   }
 
   function updateStats() {
-    const total = apps.filter(a => !a.hidden).length;
-    const installed = apps.filter(a => !a.hidden && a.installed !== false).length;
-    const web = apps.filter(a => !a.hidden && (a.platforms || []).includes('web')).length;
+    const activeApps = apps.filter(a => !isWebsiteDisallowed(a));
+    const total = activeApps.filter(a => !a.hidden).length;
+    const installed = activeApps.filter(a => !a.hidden && a.installed !== false).length;
+    const web = activeApps.filter(a => !a.hidden && (a.platforms || []).includes('web')).length;
 
     if (countTotalEl) countTotalEl.textContent = total;
     if (countInstalledEl) countInstalledEl.textContent = installed;
@@ -685,10 +730,37 @@
       if (badge) {
         if (cat === 'all') badge.textContent = total;
         else if (cat === 'installed') badge.textContent = installed;
-        else if (cat === 'favorites') badge.textContent = apps.filter(a => !a.hidden && a.pinned).length;
-        else badge.textContent = apps.filter(a => !a.hidden && a.category === cat).length;
+        else if (cat === 'favorites') badge.textContent = activeApps.filter(a => !a.hidden && a.pinned).length;
+        else badge.textContent = activeApps.filter(a => !a.hidden && a.category === cat).length;
       }
     });
+
+    // Update admin blocked count in sidebar
+    const adminBlockedEl = document.getElementById('admin-blocked-count');
+    if (adminBlockedEl) {
+      adminBlockedEl.textContent = disallowedSites.length;
+    }
+
+    // Update chip visibility in URL detector
+    document.querySelectorAll('.protutech-chip').forEach(chip => {
+      const chipSub = chip.textContent.trim().toLowerCase();
+      const chipHost = `${chipSub}.protutech.vip`;
+      const isChipBlocked = disallowedSites.includes(chipSub) || disallowedSites.includes(chipHost) || disallowedSites.includes(`protutech-${chipSub}`);
+      chip.style.display = isChipBlocked ? 'none' : 'inline-flex';
+    });
+
+    // Update header admin button state
+    const adminHeaderIcon = document.getElementById('header-admin-icon');
+    const adminHeaderText = document.getElementById('header-admin-text');
+    if (adminHeaderIcon && adminHeaderText) {
+      if (isAdminUnlocked) {
+        adminHeaderIcon.textContent = '🛡️';
+        adminHeaderText.textContent = 'Admin (Unlocked)';
+      } else {
+        adminHeaderIcon.textContent = '🔒';
+        adminHeaderText.textContent = 'Admin';
+      }
+    }
   }
 
   // ==========================================================================
@@ -971,6 +1043,238 @@
   }
 
   // ==========================================================================
+  // ADMIN ACCESS & DISALLOWED WEBSITES POLICY
+  // ==========================================================================
+  const adminModal = document.getElementById('admin-modal');
+
+  function openAdminModal() {
+    const authScreen = document.getElementById('admin-auth-screen');
+    const panelScreen = document.getElementById('admin-panel-screen');
+    const pinInput = document.getElementById('admin-pin-input');
+    const previewCheckbox = document.getElementById('admin-preview-mode-checkbox');
+
+    if (previewCheckbox) previewCheckbox.checked = adminPreviewMode;
+
+    if (isAdminUnlocked) {
+      if (authScreen) authScreen.style.display = 'none';
+      if (panelScreen) panelScreen.style.display = 'block';
+      renderAdminDisallowList();
+    } else {
+      if (authScreen) authScreen.style.display = 'block';
+      if (panelScreen) panelScreen.style.display = 'none';
+      if (pinInput) {
+        pinInput.value = '';
+        setTimeout(() => pinInput.focus(), 100);
+      }
+    }
+
+    if (adminModal) adminModal.classList.add('active');
+  }
+
+  function submitAdminPin(e) {
+    if (e) e.preventDefault();
+    const pinInput = document.getElementById('admin-pin-input');
+    if (!pinInput) return;
+    const entered = pinInput.value.trim();
+
+    if (entered === adminPin) {
+      isAdminUnlocked = true;
+      sessionStorage.setItem('protutech_admin_unlocked', 'true');
+      document.getElementById('admin-auth-screen').style.display = 'none';
+      document.getElementById('admin-panel-screen').style.display = 'block';
+      renderAdminDisallowList();
+      updateStats();
+      showToast('🛡️ Admin Mode Unlocked');
+    } else {
+      alert('Incorrect Admin Passkey. Please try again.');
+      pinInput.value = '';
+      pinInput.focus();
+    }
+  }
+
+  function lockAdmin() {
+    isAdminUnlocked = false;
+    sessionStorage.removeItem('protutech_admin_unlocked');
+    adminPreviewMode = false;
+    localStorage.setItem(STORAGE_KEY_ADMIN_PREVIEW, 'false');
+    const authScreen = document.getElementById('admin-auth-screen');
+    const panelScreen = document.getElementById('admin-panel-screen');
+    if (authScreen) authScreen.style.display = 'block';
+    if (panelScreen) panelScreen.style.display = 'none';
+    updateStats();
+    render();
+    showToast('🔒 Admin Mode Locked');
+  }
+
+  function renderAdminDisallowList() {
+    const listEl = document.getElementById('admin-disallow-list');
+    const allowedCountEl = document.getElementById('admin-allowed-count');
+    const blockedSummaryEl = document.getElementById('admin-blocked-summary');
+    if (!listEl) return;
+
+    // Build comprehensive list of all known protutech ecosystem services & apps
+    const serviceMap = new Map();
+
+    // 1. Current registered apps
+    apps.forEach(app => {
+      let host = '';
+      if (app.url) {
+        try {
+          let u = app.url.startsWith('http') ? app.url : 'https://' + app.url;
+          host = new URL(u).hostname.toLowerCase();
+        } catch (e) {}
+      }
+      serviceMap.set(app.id, {
+        id: app.id,
+        name: app.name,
+        code: app.code || 'Pt',
+        color: app.color || '#00F2FE',
+        domain: host || `${app.id}.protutech.vip`,
+        subdomain: host.replace('.protutech.vip', '') || app.id
+      });
+    });
+
+    // 2. Known ecosystem defaults
+    Object.keys(PROTUTECH_SERVICES_REGISTRY).forEach(sub => {
+      const serv = PROTUTECH_SERVICES_REGISTRY[sub];
+      if (!serviceMap.has(serv.id)) {
+        serviceMap.set(serv.id, {
+          id: serv.id,
+          name: serv.name,
+          code: serv.code,
+          color: serv.color,
+          domain: `${sub}.protutech.vip`,
+          subdomain: sub
+        });
+      }
+    });
+
+    // 3. Custom disallowed entries
+    disallowedSites.forEach(blockedItem => {
+      if (!Array.from(serviceMap.values()).some(s => s.id === blockedItem || s.domain === blockedItem || s.subdomain === blockedItem)) {
+        serviceMap.set(blockedItem, {
+          id: blockedItem,
+          name: blockedItem,
+          code: '🚫',
+          color: '#ef4444',
+          domain: blockedItem,
+          subdomain: blockedItem
+        });
+      }
+    });
+
+    const allServices = Array.from(serviceMap.values());
+    let blockedCount = 0;
+
+    listEl.innerHTML = allServices.map(item => {
+      const isBlocked = disallowedSites.includes(item.id) || 
+                        disallowedSites.includes(item.domain) || 
+                        disallowedSites.includes(item.subdomain);
+      if (isBlocked) blockedCount++;
+
+      return `
+        <div class="disallowed-website-row ${isBlocked ? 'is-blocked' : ''}">
+          <div class="disallowed-info">
+            <div class="disallowed-badge" style="background: ${item.color};">
+              ${item.code}
+            </div>
+            <div>
+              <div class="disallowed-name">${item.name}</div>
+              <div class="disallowed-domain">${item.domain}</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            ${isBlocked ? '<span class="disallowed-tag">Disallowed</span>' : '<span style="font-size: 11px; color: var(--color-success); font-weight: 600;">Allowed</span>'}
+            <label class="switch">
+              <input type="checkbox" ${isBlocked ? 'checked' : ''} onchange="window.ProtutechDash.toggleDisallowSite('${item.domain}', this.checked)">
+              <span class="slider" style="${isBlocked ? 'background-color: #ef4444; border-color: #ef4444;' : ''}"></span>
+            </label>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    if (allowedCountEl) allowedCountEl.textContent = allServices.length - blockedCount;
+    if (blockedSummaryEl) blockedSummaryEl.textContent = blockedCount;
+    const badgeEl = document.getElementById('admin-blocked-count');
+    if (badgeEl) badgeEl.textContent = blockedCount;
+  }
+
+  function toggleDisallowSite(siteKey, shouldDisallow) {
+    const cleanKey = siteKey.toLowerCase().trim();
+    if (shouldDisallow) {
+      if (!disallowedSites.includes(cleanKey)) {
+        disallowedSites.push(cleanKey);
+      }
+    } else {
+      disallowedSites = disallowedSites.filter(s => s !== cleanKey && !cleanKey.includes(s));
+    }
+
+    localStorage.setItem(STORAGE_KEY_DISALLOWED_SITES, JSON.stringify(disallowedSites));
+    renderAdminDisallowList();
+    render();
+    updateStats();
+    showToast(shouldDisallow ? `🚫 Disallowed "${cleanKey}" from suite list` : `✓ Allowed "${cleanKey}" in suite list`);
+  }
+
+  function addCustomDisallow() {
+    const input = document.getElementById('admin-custom-disallow-input');
+    if (!input) return;
+    const val = input.value.trim().toLowerCase();
+    if (!val) {
+      alert('Please enter a website or subdomain to disallow.');
+      return;
+    }
+
+    let normalized = val.replace(/^https?:\/\//, '');
+    if (!disallowedSites.includes(normalized)) {
+      disallowedSites.push(normalized);
+      localStorage.setItem(STORAGE_KEY_DISALLOWED_SITES, JSON.stringify(disallowedSites));
+      input.value = '';
+      renderAdminDisallowList();
+      render();
+      updateStats();
+      showToast(`🚫 Disallowed "${normalized}"`);
+    } else {
+      alert(`"${normalized}" is already on the disallowed list.`);
+    }
+  }
+
+  function clearAllDisallowed() {
+    if (confirm('Allow all websites again and clear the disallowed blocklist?')) {
+      disallowedSites = [];
+      localStorage.setItem(STORAGE_KEY_DISALLOWED_SITES, JSON.stringify(disallowedSites));
+      renderAdminDisallowList();
+      render();
+      updateStats();
+      showToast('Cleared all disallowed rules');
+    }
+  }
+
+  function changeAdminPin() {
+    const cur = prompt('Enter CURRENT Admin Passkey:');
+    if (cur !== adminPin) {
+      alert('Current passkey incorrect.');
+      return;
+    }
+    const newPin = prompt('Enter NEW Admin Passkey (min 4 characters):');
+    if (!newPin || newPin.length < 4) {
+      alert('Passkey must be at least 4 characters long.');
+      return;
+    }
+    adminPin = newPin;
+    localStorage.setItem(STORAGE_KEY_ADMIN_PIN, newPin);
+    showToast('Admin Passkey updated successfully');
+  }
+
+  function toggleAdminPreview(enabled) {
+    adminPreviewMode = enabled;
+    localStorage.setItem(STORAGE_KEY_ADMIN_PREVIEW, enabled);
+    render();
+    showToast(enabled ? 'Admin Preview: Showing disallowed apps with red border' : 'Admin Preview: Hiding disallowed apps');
+  }
+
+  // ==========================================================================
   // IN-APP EMBED CODE GENERATOR MODAL
   // ==========================================================================
   function openEmbedModal() {
@@ -1012,7 +1316,11 @@
   // BACKUP & RESTORE
   // ==========================================================================
   function exportConfig() {
-    const data = JSON.stringify(apps, null, 2);
+    const data = JSON.stringify({
+      version: '1.0.0',
+      apps: apps,
+      disallowedSites: disallowedSites
+    }, null, 2);
     const blob = new Blob([data], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1020,7 +1328,7 @@
     a.download = `protutechdash-apps-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('Exported suite configuration');
+    showToast('Exported suite configuration & policy');
   }
 
   function importConfig(e) {
@@ -1032,12 +1340,20 @@
         const imported = JSON.parse(evt.target.result);
         if (Array.isArray(imported)) {
           apps = imported;
-          saveApps();
-          render();
-          showToast('Imported apps configuration successfully');
+        } else if (imported && Array.isArray(imported.apps)) {
+          apps = imported.apps;
+          if (Array.isArray(imported.disallowedSites)) {
+            disallowedSites = imported.disallowedSites;
+            localStorage.setItem(STORAGE_KEY_DISALLOWED_SITES, JSON.stringify(disallowedSites));
+          }
         } else {
-          alert('Invalid format: Expected array of apps');
+          alert('Invalid format: Expected array of apps or valid suite config');
+          return;
         }
+        saveApps();
+        render();
+        updateStats();
+        showToast('Imported apps configuration & policy successfully');
       } catch (err) {
         alert('Failed to parse JSON file');
       }
@@ -1066,7 +1382,7 @@
         bottom: 24px;
         right: 24px;
         background: #0f172a;
-        color: #f8fafc;
+        color: #f87171;
         border: 1px solid rgba(0, 242, 254, 0.4);
         padding: 12px 20px;
         border-radius: 10px;
@@ -1082,6 +1398,7 @@
       document.body.appendChild(toast);
     }
     toast.textContent = msg;
+    toast.style.color = msg.startsWith('❌') || msg.startsWith('🚫') ? '#f87171' : '#f8fafc';
     toast.style.transform = 'translateY(0)';
     toast.style.opacity = '1';
     clearTimeout(toast._timeout);
@@ -1311,6 +1628,14 @@
         input.select();
       }
     },
+    openAdminModal,
+    submitAdminPin,
+    lockAdmin,
+    toggleDisallowSite,
+    addCustomDisallow,
+    clearAllDisallowed,
+    changeAdminPin,
+    toggleAdminPreview,
     togglePin,
     toggleHide,
     toggleInstalled,
