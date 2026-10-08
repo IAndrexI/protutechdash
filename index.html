@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-palette="protutech-obsidian">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Protutech Suite Dashboard & Cross-Platform App Launcher</title>
+  
+  <!-- PWA Meta Tags -->
+  <meta name="description" content="Central cross-platform app launcher, suite dashboard and switcher for all Protutech applications.">
+  <meta name="theme-color" content="#00f2fe">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/svg+xml" href="./assets/protutech-logo.svg">
+  <link rel="apple-touch-icon" href="./assets/protutech-logo.svg">
+
+  <!-- Application Stylesheet -->
+  <link rel="stylesheet" href="./src/styles.css">
+</head>
+<body>
+
+  <div class="app-layout">
+
+    <!-- ====================================================================
+         SIDEBAR (Adobe Creative Cloud Suite Aesthetic)
+         ==================================================================== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-icon-wrapper">
+          <img src="./assets/protutech-logo.svg" alt="Protutech Logo">
+        </div>
+        <div class="brand-info">
+          <span class="brand-title">PROTUTECH</span>
+          <span class="brand-subtitle">App Suite Dashboard</span>
+        </div>
+      </div>
+
+      <div class="sidebar-content">
+        <!-- Overview Section -->
+        <div class="nav-section">
+          <div class="nav-section-title">Suite Overview</div>
+          <div class="nav-item active" data-cat="all">
+            <span class="icon">📦</span>
+            <span>All Applications</span>
+            <span class="badge-count" id="count-all-apps">0</span>
+          </div>
+          <div class="nav-item" data-cat="favorites">
+            <span class="icon">⭐</span>
+            <span>Favorites & Pinned</span>
+            <span class="badge-count" id="count-fav-apps">0</span>
+          </div>
+          <div class="nav-item" data-cat="installed">
+            <span class="icon">💻</span>
+            <span>Installed on System</span>
+            <span class="badge-count" id="count-installed-apps-nav">0</span>
+          </div>
+        </div>
+
+        <!-- Categories Section -->
+        <div class="nav-section">
+          <div class="nav-section-title">Categories</div>
+          <div class="nav-item" data-cat="DevOps & Infrastructure">
+            <span class="icon">⚙️</span>
+            <span>DevOps & Infrastructure</span>
+            <span class="badge-count">0</span>
+          </div>
+          <div class="nav-item" data-cat="Cloud & Storage">
+            <span class="icon">☁️</span>
+            <span>Cloud & Storage</span>
+            <span class="badge-count">0</span>
+          </div>
+          <div class="nav-item" data-cat="Community & Gaming">
+            <span class="icon">🎮</span>
+            <span>Community & Gaming</span>
+            <span class="badge-count">0</span>
+          </div>
+          <div class="nav-item" data-cat="Security & Identity">
+            <span class="icon">🛡️</span>
+            <span>Security & Vaults</span>
+            <span class="badge-count">0</span>
+          </div>
+          <div class="nav-item" data-cat="Productivity & Tools">
+            <span class="icon">⚡</span>
+            <span>Productivity & Tools</span>
+            <span class="badge-count">0</span>
+          </div>
+        </div>
+
+        <!-- Management Tools -->
+        <div class="nav-section">
+          <div class="nav-section-title">Tools & Integration</div>
+          <div class="nav-item" onclick="window.ProtutechDash.openEmbedModal()">
+            <span class="icon">🔌</span>
+            <span>Embed in My Apps</span>
+          </div>
+          <div class="nav-item" onclick="window.ProtutechDash.openHiddenAppsModal()">
+            <span class="icon">👁️</span>
+            <span>Hidden Apps Manager</span>
+          </div>
+          <div class="nav-item" onclick="window.ProtutechDash.exportConfig()">
+            <span class="icon">💾</span>
+            <span>Export Configuration</span>
+          </div>
+          <label class="nav-item" style="cursor: pointer;">
+            <span class="icon">📥</span>
+            <span>Import Configuration</span>
+            <input type="file" id="import-file-input" accept=".json" style="display:none;" onchange="window.ProtutechDash.importConfig(event)">
+          </label>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="system-status-indicator" id="bridge-status-indicator">
+          <span class="status-pulse-dot"></span>
+          <span>Checking Desktop Bridge...</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ====================================================================
+         MAIN CONTENT AREA
+         ==================================================================== -->
+    <div class="main-wrapper">
+
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu">☰</button>
+          
+          <div class="search-container">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" id="search-input" placeholder="Search apps, tools, protocols (Ctrl+K or /)...">
+            <span class="search-shortcut-badge">/</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- Add App Button -->
+          <button class="header-btn primary" onclick="window.ProtutechDash.openAddAppModal()">
+            <span>+</span> Add App
+          </button>
+
+          <!-- In-App Embed Generator Button -->
+          <button class="header-btn" onclick="window.ProtutechDash.openEmbedModal()" title="Embed Launcher into your other apps">
+            <span>🔌</span> Embed in Apps
+          </button>
+
+          <!-- Theme Palette Selector -->
+          <select class="form-select" id="palette-select" style="width: auto; padding: 7px 10px; font-size: 12px; background: var(--bg-card);">
+            <option value="protutech-obsidian">Obsidian Neon</option>
+            <option value="adobe-classic">Adobe Classic</option>
+            <option value="cyber-emerald">Cyber Emerald</option>
+            <option value="sunset-ember">Sunset Ember</option>
+          </select>
+
+          <!-- Light/Dark Mode Toggle -->
+          <button class="header-btn" id="theme-toggle-btn" title="Toggle Light / Dark Mode">
+            ☀️ Light
+          </button>
+        </div>
+      </header>
+
+      <!-- Sub Control Bar -->
+      <section class="control-subbar">
+        <div class="subbar-left">
+          <!-- View Modes (Grid / Compact / List) -->
+          <div class="view-pills">
+            <button class="view-pill active" data-view="grid" title="Standard Grid View">Grid</button>
+            <button class="view-pill" data-view="compact" title="Compact Grid">Compact</button>
+            <button class="view-pill" data-view="list" title="Detailed List View">List</button>
+          </div>
+
+          <!-- Active Device & Platform Compatibility Controls -->
+          <div class="platform-compatibility-pill">
+            <span id="active-device-badge">💻 Desktop</span>
+            <span>|</span>
+            <span>Filter Mode:</span>
+            <select id="platform-filter-select">
+              <option value="grayout">Gray out Incompatible</option>
+              <option value="hide">Hide Incompatible</option>
+              <option value="all">Show All Regardless</option>
+            </select>
+          </div>
+
+          <!-- Platform Simulator -->
+          <div class="platform-compatibility-pill">
+            <span>Simulator:</span>
+            <select id="platform-simulator-select">
+              <option value="auto">Auto (Current Device)</option>
+              <option value="desktop">Simulate Desktop</option>
+              <option value="mobile">Simulate Mobile</option>
+              <option value="web">Simulate Web</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="subbar-right">
+          <span style="font-size: 12px; color: var(--text-dim);">
+            Drag apps to reorder • Press 1-9 to quick launch
+          </span>
+        </div>
+      </section>
+
+      <!-- Content Body -->
+      <main class="content-body">
+
+        <!-- Hero Ecosystem Banner -->
+        <section class="hero-banner">
+          <div class="hero-text">
+            <h1>Protutech Suite Ecosystem</h1>
+            <p>
+              Your central launcher for all your deployed services, local utilities, and future applications. 
+              Apps not installed on this machine appear grayed out with one-click setup assistance.
+            </p>
+          </div>
+          <div class="hero-stats">
+            <div class="stat-item">
+              <div class="stat-value" id="stat-total-apps">0</div>
+              <div class="stat-label">Suite Apps</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="stat-installed-apps">0</div>
+              <div class="stat-label">Installed</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="stat-web-apps">0</div>
+              <div class="stat-label">Cloud / Web</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Category Title -->
+        <div class="category-header">
+          <div class="category-title" id="current-view-title">All Applications</div>
+          <div class="category-actions">
+            <button class="header-btn" onclick="window.ProtutechDash.resetToDefaults()" style="font-size: 11.5px; padding: 4px 10px;">
+              Reset Defaults
+            </button>
+          </div>
+        </div>
+
+        <!-- Apps Grid -->
+        <div class="apps-grid" id="apps-grid">
+          <!-- Dynamically populated by src/app.js -->
+        </div>
+
+      </main>
+
+    </div>
+
+  </div>
+
+  <!-- Mobile Bottom Nav Bar -->
+  <nav class="mobile-bottom-nav">
+    <button class="mobile-nav-btn active" onclick="window.ProtutechDash.resetFilters()">
+      <span class="icon">📦</span>
+      <span>Apps</span>
+    </button>
+    <button class="mobile-nav-btn" onclick="window.ProtutechDash.openAddAppModal()">
+      <span class="icon">➕</span>
+      <span>Add</span>
+    </button>
+    <button class="mobile-nav-btn" onclick="window.ProtutechDash.openEmbedModal()">
+      <span class="icon">🔌</span>
+      <span>Embed</span>
+    </button>
+    <button class="mobile-nav-btn" onclick="window.ProtutechDash.openHiddenAppsModal()">
+      <span class="icon">👁️</span>
+      <span>Hidden</span>
+    </button>
+  </nav>
+
+  <!-- ====================================================================
+       MODAL: REGISTER / EDIT APPLICATION
+       ==================================================================== -->
+  <div class="modal-backdrop" id="app-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-app-title">Register New Protutech App</h2>
+        <button class="modal-close-btn" onclick="document.getElementById('app-modal').classList.remove('active')">&times;</button>
+      </div>
+      <form id="app-form">
+        <div class="modal-body">
+          <input type="hidden" id="form-app-id">
+
+          <!-- Live Adobe-Style Badge Preview -->
+          <div class="badge-preview-box">
+            <div class="adobe-app-badge" id="badge-live-preview" style="background: #00F2FE;">Pt</div>
+            <div>
+              <div style="font-size: 13.5px; font-weight: 700;">Adobe-Style Suite Badge</div>
+              <div style="font-size: 11.5px; color: var(--text-dim);">Auto-generated from your app name & custom color</div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Application Name *</label>
+              <input type="text" class="form-input" id="form-app-name" placeholder="e.g. Protutech Analytics" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">2-Letter Badge Code</label>
+              <input type="text" class="form-input" id="form-app-code" maxlength="3" placeholder="e.g. An">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Category</label>
+              <select class="form-select" id="form-app-category">
+                <option value="Productivity & Tools">Productivity & Tools</option>
+                <option value="DevOps & Infrastructure">DevOps & Infrastructure</option>
+                <option value="Cloud & Storage">Cloud & Storage</option>
+                <option value="Community & Gaming">Community & Gaming</option>
+                <option value="Security & Identity">Security & Identity</option>
+                <option value="Custom">Custom</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Accent Theme Color</label>
+              <input type="color" class="form-input" id="form-app-color" value="#00F2FE" style="height: 42px; padding: 4px; cursor: pointer;">
+              <div class="color-presets">
+                <div class="color-dot selected" style="background:#00F2FE;" data-color="#00F2FE"></div>
+                <div class="color-dot" style="background:#5865F2;" data-color="#5865F2"></div>
+                <div class="color-dot" style="background:#10B981;" data-color="#10B981"></div>
+                <div class="color-dot" style="background:#EA580C;" data-color="#EA580C"></div>
+                <div class="color-dot" style="background:#E11D48;" data-color="#E11D48"></div>
+                <div class="color-dot" style="background:#8B5CF6;" data-color="#8B5CF6"></div>
+                <div class="color-dot" style="background:#F59E0B;" data-color="#F59E0B"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Launch URL (Web / Cloud)</label>
+            <input type="url" class="form-input" id="form-app-url" placeholder="https://myapp.protutech.vip">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Custom URI Scheme (Optional)</label>
+              <input type="text" class="form-input" id="form-app-protocol" placeholder="protutech-myapp://">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Local Executable Path (Desktop)</label>
+              <input type="text" class="form-input" id="form-app-desktop-path" placeholder="C:\Apps\MyApp\MyApp.exe">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Download / Setup URL (If not installed)</label>
+            <input type="text" class="form-input" id="form-app-install-url" placeholder="https://github.com/IAndrexI/myapp/releases">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-textarea" id="form-app-desc" placeholder="Brief summary of what this application does..."></textarea>
+          </div>
+
+          <div class="form-row" style="margin-top: 10px;">
+            <div class="form-group">
+              <label class="form-label">Supported Platforms</label>
+              <div style="display: flex; gap: 14px; margin-top: 6px;">
+                <label style="font-size: 13px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                  <input type="checkbox" id="form-platform-desktop" checked> Desktop
+                </label>
+                <label style="font-size: 13px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                  <input type="checkbox" id="form-platform-web" checked> Web
+                </label>
+                <label style="font-size: 13px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                  <input type="checkbox" id="form-platform-mobile" checked> Mobile
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Installation Status</label>
+              <label style="font-size: 13px; display: flex; align-items: center; gap: 6px; margin-top: 6px; cursor: pointer;">
+                <input type="checkbox" id="form-app-installed" checked> 
+                Installed on current system (uncheck to gray out)
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="header-btn" id="btn-delete-app" style="color: var(--color-danger); margin-right: auto; display: none;">Delete App</button>
+          <button type="button" class="header-btn" onclick="document.getElementById('app-modal').classList.remove('active')">Cancel</button>
+          <button type="submit" class="header-btn primary">Save Application</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: EMBED LAUNCHER IN OTHER APPS
+       ==================================================================== -->
+  <div class="modal-backdrop" id="embed-modal">
+    <div class="modal-box" style="max-width: 680px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Embed Launcher in Your Other Apps</h2>
+        <button class="modal-close-btn" onclick="document.getElementById('embed-modal').classList.remove('active')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="color: var(--text-muted); font-size: 13.5px; line-height: 1.5; margin-bottom: 16px;">
+          Add a unified <strong>Protutech App Switcher</strong> button to any of your other web applications. 
+          When clicked, it opens a clean slide-out menu allowing you to jump instantly between all your apps without leaving!
+        </p>
+
+        <h4 style="color: var(--text-main); font-size: 14px; margin-bottom: 6px;">Option 1: Single HTML Script Tag (Vanilla / PHP / Any Web App)</h4>
+        <div class="code-preview-container">
+          <button class="btn-copy-code" onclick="window.ProtutechDash.copyEmbedCode('code-embed-script')">Copy</button>
+          <pre id="code-embed-script">&lt;script src="https://iandrexi.github.io/protutechdash/embed/protutech-launcher.js" data-position="top-right"&gt;&lt;/script&gt;</pre>
+        </div>
+
+        <h4 style="color: var(--text-main); font-size: 14px; margin: 18px 0 6px 0;">Option 2: React / Next.js Component</h4>
+        <div class="code-preview-container">
+          <button class="btn-copy-code" onclick="window.ProtutechDash.copyEmbedCode('code-embed-react')">Copy</button>
+          <pre id="code-embed-react">import { useEffect } from 'react';
+
+export default function ProtutechSwitcher() {
+  useEffect(() => {
+    const s = document.createElement('script');
+    s.src = 'https://iandrexi.github.io/protutechdash/embed/protutech-launcher.js';
+    s.setAttribute('data-position', 'top-right');
+    document.body.appendChild(s);
+    return () => s.remove();
+  }, []);
+  return null;
+}</pre>
+        </div>
+
+        <h4 style="color: var(--text-main); font-size: 14px; margin: 18px 0 6px 0;">Option 3: Embedded Iframe / Sidebar Widget</h4>
+        <div class="code-preview-container">
+          <button class="btn-copy-code" onclick="window.ProtutechDash.copyEmbedCode('code-embed-iframe')">Copy</button>
+          <pre id="code-embed-iframe">&lt;iframe src="https://iandrexi.github.io/protutechdash/" style="width: 100%; height: 600px; border: none; border-radius: 12px;"&gt;&lt;/iframe&gt;</pre>
+        </div>
+
+        <div style="background: rgba(0, 242, 254, 0.08); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 8px; padding: 12px 16px; margin-top: 14px;">
+          <div style="font-size: 12.5px; color: var(--accent-primary); font-weight: 600; margin-bottom: 4px;">🚀 Live Interactive Demo Available</div>
+          <div style="font-size: 12px; color: var(--text-muted);">
+            Test the live embed widget in action by opening <a href="./embed/demo-app.html" target="_blank" style="color: var(--accent-primary);">embed/demo-app.html</a>!
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="header-btn primary" onclick="document.getElementById('embed-modal').classList.remove('active')">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: HIDDEN APPS MANAGER
+       ==================================================================== -->
+  <div class="modal-backdrop" id="hidden-apps-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 class="modal-title">Hidden Applications</h2>
+        <button class="modal-close-btn" onclick="document.getElementById('hidden-apps-modal').classList.remove('active')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 14px;">
+          These apps are currently hidden from your main dashboard grid. Click "Restore" to unhide any application.
+        </p>
+        <div id="hidden-apps-list">
+          <!-- Populated by src/app.js -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="header-btn" onclick="window.ProtutechDash.restoreAllHidden()" style="margin-right: auto;">Restore All Apps</button>
+        <button type="button" class="header-btn primary" onclick="document.getElementById('hidden-apps-modal').classList.remove('active')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: IN-APP WEB RUNNER (Embedded Window)
+       ==================================================================== -->
+  <div class="modal-backdrop" id="runner-modal">
+    <div class="modal-box runner-modal-box">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 16px;">⛶</span>
+          <h2 class="modal-title" id="runner-title">Protutech Suite Runner</h2>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button class="header-btn" onclick="document.getElementById('runner-iframe').contentWindow.location.reload()" title="Reload App">↻ Reload</button>
+          <button class="modal-close-btn" onclick="window.ProtutechDash.closeRunner()">&times;</button>
+        </div>
+      </div>
+      <div class="runner-iframe-wrapper">
+        <iframe id="runner-iframe" class="runner-iframe" src="about:blank" sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core App Logic -->
+  <script src="./src/app.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,43 @@
+{
+  "name": "Protutech Dash - App Suite Launcher",
+  "short_name": "ProtutechDash",
+  "description": "Unified Cross-Platform App Launcher & Suite Dashboard for Protutech Applications",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#090d16",
+  "theme_color": "#00f2fe",
+  "orientation": "any",
+  "categories": ["productivity", "utilities", "developer tools"],
+  "icons": [
+    {
+      "src": "./assets/protutech-logo.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Discord Client",
+      "short_name": "Discord",
+      "description": "Launch Protutech Discord Client",
+      "url": "./index.html?launch=protutech-discord",
+      "icons": [{ "src": "./assets/protutech-logo.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Proxmox Cluster",
+      "short_name": "Proxmox",
+      "description": "Open Proxmox VE Console",
+      "url": "./index.html?launch=protutech-proxmox",
+      "icons": [{ "src": "./assets/protutech-logo.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Vaultwarden",
+      "short_name": "Vault",
+      "description": "Open Password Vault",
+      "url": "./index.html?launch=protutech-vaultwarden",
+      "icons": [{ "src": "./assets/protutech-logo.svg", "sizes": "192x192" }]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "protutechdash",
+  "version": "1.0.0",
+  "description": "Protutech Suite Dashboard & Cross-Platform App Launcher",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "npx serve . -p 8080",
+    "bridge": "node desktop/protutech-bridge.js"
+  },
+  "keywords": [
+    "protutech",
+    "launcher",
+    "dashboard",
+    "app-suite",
+    "adobe-suite-style",
+    "pwa"
+  ],
+  "author": "Andrex (IAndrexI)",
+  "license": "Apache-2.0"
+}
