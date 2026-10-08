@@ -550,6 +550,21 @@
     if (!appsGrid) return;
     updatePlatformUI();
 
+    const titleEl = document.getElementById('current-view-title');
+    if (titleEl) {
+      if (viewMode === 'periodic') {
+        titleEl.textContent = 'Periodic Table of Applications';
+      } else if (currentCategory === 'all') {
+        titleEl.textContent = 'All Applications';
+      } else if (currentCategory === 'favorites') {
+        titleEl.textContent = 'Favorites & Pinned';
+      } else if (currentCategory === 'installed') {
+        titleEl.textContent = 'Installed on System';
+      } else {
+        titleEl.textContent = currentCategory;
+      }
+    }
+
     const effectivePlatform = getEffectivePlatform();
     const query = currentSearchQuery.trim().toLowerCase();
 
@@ -595,8 +610,13 @@
       return (a.order || 0) - (b.order || 0);
     });
 
+    // Sync view pills
+    document.querySelectorAll('.view-pill').forEach(b => {
+      b.classList.toggle('active', b.getAttribute('data-view') === viewMode);
+    });
+
     // Apply view mode classes
-    appsGrid.className = `apps-grid ${viewMode === 'list' ? 'list-view' : (viewMode === 'compact' ? 'compact' : '')}`;
+    appsGrid.className = `apps-grid ${viewMode === 'list' ? 'list-view' : (viewMode === 'compact' ? 'compact' : (viewMode === 'periodic' ? 'periodic-view' : ''))}`;
 
     if (visibleApps.length === 0) {
       appsGrid.innerHTML = `
@@ -607,6 +627,13 @@
           <button class="header-btn primary" style="margin-top: 16px;" onclick="window.ProtutechDash.resetFilters()">Reset All Filters</button>
         </div>
       `;
+      updateStats();
+      return;
+    }
+
+    // Branch to Periodic Table View if active
+    if (viewMode === 'periodic') {
+      renderPeriodicTableView(visibleApps);
       updateStats();
       return;
     }
@@ -734,6 +761,314 @@
 
     attachDragAndDropListeners();
     updateStats();
+  }
+
+  // ==========================================================================
+  // PERIODIC TABLE OF PROTUTECH APPS ENGINE
+  // ==========================================================================
+  let activePeriodicSeries = 'all';
+
+  function setPeriodicSeriesFilter(seriesId) {
+    activePeriodicSeries = seriesId;
+    render();
+  }
+
+  function renderPeriodicTableView(visibleApps) {
+    // Defined Periodic Blocks / Series
+    const PERIODIC_SECTIONS = [
+      {
+        id: 'devops',
+        category: 'DevOps & Infrastructure',
+        roman: 'Block I',
+        title: 'DevOps & Core Infrastructure',
+        color: '#EA580C',
+        desc: 'Virtualization, hypervisors, container nodes & network tunnels'
+      },
+      {
+        id: 'cloud',
+        category: 'Cloud & Storage',
+        roman: 'Block II',
+        title: 'Cloud Files & Persistent Storage',
+        color: '#0284C7',
+        desc: 'Encrypted drive libraries, object storage & multi-gigabit sync'
+      },
+      {
+        id: 'security',
+        category: 'Security & Identity',
+        roman: 'Block III',
+        title: 'Security, Vaults & Identity',
+        color: '#2563EB',
+        desc: 'Zero-knowledge credential vaults, alias gateways & 2FA'
+      },
+      {
+        id: 'gaming',
+        category: 'Community & Gaming',
+        roman: 'Block IV',
+        title: 'Community, Bots & Gaming',
+        color: '#8B5CF6',
+        desc: 'Voice clients, bot infrastructure & webhook event hubs'
+      },
+      {
+        id: 'productivity',
+        category: 'Productivity & Tools',
+        roman: 'Block V',
+        title: 'Productivity & System Utilities',
+        color: '#10B981',
+        desc: 'Asset databases, mail hubs, developer studios & local bridges'
+      }
+    ];
+
+    // Catch any custom or user-added categories
+    const knownCategories = PERIODIC_SECTIONS.map(s => s.category);
+    const extraCategories = [...new Set(visibleApps.map(a => a.category).filter(c => c && !knownCategories.includes(c)))];
+    
+    const allSections = [...PERIODIC_SECTIONS];
+    extraCategories.forEach((extraCat, idx) => {
+      allSections.push({
+        id: `custom-${idx}`,
+        category: extraCat,
+        roman: `Block ${['VI', 'VII', 'VIII', 'IX', 'X'][idx] || 'Custom'}`,
+        title: extraCat,
+        color: '#00F2FE',
+        desc: 'Custom extensions & user-registered elemental applications'
+      });
+    });
+
+    const totalElements = visibleApps.length;
+
+    // Filter by series if activePeriodicSeries !== 'all'
+    const sectionsToRender = activePeriodicSeries === 'all' 
+      ? allSections 
+      : allSections.filter(s => s.id === activePeriodicSeries || s.category === activePeriodicSeries);
+
+    // Build Legend Pills
+    const legendPillsHtml = [
+      `<button class="periodic-legend-pill ${activePeriodicSeries === 'all' ? 'active' : ''}" onclick="window.ProtutechDash.setPeriodicSeriesFilter('all')">
+        <span class="periodic-legend-dot" style="background: var(--accent-primary);"></span>
+        <span>All Series (${totalElements})</span>
+      </button>`
+    ].concat(
+      allSections.map(s => {
+        const count = visibleApps.filter(a => a.category === s.category).length;
+        if (count === 0 && activePeriodicSeries !== s.id) return '';
+        return `
+          <button class="periodic-legend-pill ${activePeriodicSeries === s.id ? 'active' : ''}" onclick="window.ProtutechDash.setPeriodicSeriesFilter('${s.id}')">
+            <span class="periodic-legend-dot" style="background: ${s.color};"></span>
+            <span>${s.category} (${count})</span>
+          </button>
+        `;
+      }).filter(Boolean)
+    ).join('');
+
+    // Build Sections
+    let sectionsHtml = '';
+    let globalAtomicNumber = 1;
+
+    sectionsToRender.forEach(sec => {
+      const sectionApps = visibleApps.filter(a => a.category === sec.category);
+      if (sectionApps.length === 0) return;
+
+      const elementsHtml = sectionApps.map((app) => {
+        const atomicNum = (app.order !== undefined ? app.order + 1 : globalAtomicNumber++);
+        const isInstalled = app.installed !== false;
+        const isBlocked = isWebsiteDisallowed(app);
+        const accent = app.color || sec.color || '#00f2fe';
+        const symbol = app.code || (app.name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase());
+        
+        // Derive atomic weight / port
+        let atomicWeight = '443';
+        if (app.url) {
+          try {
+            const parsed = new URL(app.url);
+            atomicWeight = parsed.port || (parsed.protocol === 'https:' ? '443' : '80');
+          } catch(e) {
+            atomicWeight = 'v1.0';
+          }
+        }
+
+        // Subdomain or host
+        let hostDisplay = 'protutech.vip';
+        if (app.url) {
+          try {
+            hostDisplay = new URL(app.url).hostname;
+          } catch(e) {
+            hostDisplay = app.url;
+          }
+        }
+
+        const classes = [
+          'periodic-element',
+          isInstalled ? 'installed' : 'not-installed',
+          isBlocked ? 'admin-blocked' : '',
+          app.pinned ? 'is-pinned' : ''
+        ].filter(Boolean).join(' ');
+
+        return `
+          <div class="${classes}" 
+               style="--element-accent: ${accent};"
+               onclick="window.ProtutechDash.inspectElement('${app.id}')"
+               title="Element #${atomicNum}: ${app.name} (${symbol}) - Click to inspect or launch">
+            
+            <div class="periodic-element-top">
+              <span class="periodic-atomic-num">${atomicNum}</span>
+              <span class="periodic-atomic-mass">${atomicWeight}</span>
+            </div>
+
+            <div class="periodic-element-symbol">${symbol}</div>
+
+            <div class="periodic-element-bottom">
+              <div class="periodic-element-name">${app.name}</div>
+              <div class="periodic-element-sub">${hostDisplay}</div>
+            </div>
+
+            <div class="periodic-quick-hover">
+              <button class="periodic-quick-hover-btn" onclick="event.stopPropagation(); window.ProtutechDash.launch('${app.id}')">
+                <span>Launch</span> &rarr;
+              </button>
+              <span style="font-size: 9.5px; color: var(--text-muted);">Inspect Details</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      sectionsHtml += `
+        <div class="periodic-section-block">
+          <div class="periodic-section-header">
+            <div class="periodic-section-title-wrap">
+              <div class="periodic-section-accent-bar" style="background: ${sec.color}; box-shadow: 0 0 10px ${sec.color};"></div>
+              <div>
+                <div class="periodic-section-title">${sec.roman} • ${sec.title}</div>
+                <div style="font-size: 11px; color: var(--text-dim);">${sec.desc}</div>
+              </div>
+            </div>
+            <div class="periodic-section-badge" style="border-color: ${sec.color}40;">
+              ${sectionApps.length} ${sectionApps.length === 1 ? 'Element' : 'Elements'}
+            </div>
+          </div>
+          <div class="periodic-elements-grid">
+            ${elementsHtml}
+          </div>
+        </div>
+      `;
+    });
+
+    appsGrid.innerHTML = `
+      <div class="periodic-container">
+        <div class="periodic-header-box">
+          <div class="periodic-header-top">
+            <div class="periodic-title-group">
+              <svg class="pt-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="2" x2="12" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line></svg>
+              <div>
+                <div class="periodic-title">Periodic Table of Protutech Applications</div>
+                <div class="periodic-subtitle">Interactive elemental suite classification arranged into functional system blocks.</div>
+              </div>
+            </div>
+            <button class="header-btn" onclick="window.ProtutechDash.setPeriodicSeriesFilter('all')" style="font-size: 11.5px; padding: 4px 10px;">
+              Reset Block Filter
+            </button>
+          </div>
+          <div class="periodic-legend">
+            ${legendPillsHtml}
+          </div>
+        </div>
+        ${sectionsHtml || '<div style="text-align: center; padding: 40px; color: var(--text-dim);">No elements match the selected filter.</div>'}
+      </div>
+    `;
+  }
+
+  function inspectElement(appId) {
+    const app = apps.find(a => a.id === appId);
+    if (!app) return;
+
+    const modal = document.getElementById('periodic-inspector-modal');
+    const body = document.getElementById('inspector-modal-body');
+    const footer = document.getElementById('inspector-modal-footer');
+    const title = document.getElementById('inspector-element-title');
+    if (!modal || !body || !footer) return;
+
+    const isInstalled = app.installed !== false;
+    const isBlocked = isWebsiteDisallowed(app);
+    const accent = app.color || '#00f2fe';
+    const symbol = app.code || (app.name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase());
+    const atomicNum = app.order !== undefined ? app.order + 1 : 1;
+
+    let atomicWeight = '443';
+    if (app.url) {
+      try {
+        const parsed = new URL(app.url);
+        atomicWeight = parsed.port || (parsed.protocol === 'https:' ? '443' : '80');
+      } catch(e) {
+        atomicWeight = 'v1.0';
+      }
+    }
+
+    if (title) {
+      title.textContent = `Elemental Profile: ${app.name} (${symbol})`;
+    }
+
+    body.innerHTML = `
+      <div class="inspector-hero-card">
+        <div class="inspector-element-box" style="--element-accent: ${accent};">
+          <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-dim); font-family: monospace;">
+            <span style="font-weight: 800; color: var(--text-muted);">${atomicNum}</span>
+            <span>${atomicWeight}</span>
+          </div>
+          <div style="font-size: 32px; font-weight: 900; color: ${accent}; text-align: center; line-height: 1;">${symbol}</div>
+          <div style="font-size: 10px; font-weight: 700; color: var(--text-main); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${app.name}</div>
+        </div>
+        <div>
+          <div style="font-size: 19px; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">${app.name}</div>
+          <div style="font-size: 12.5px; color: ${accent}; font-weight: 700; margin-bottom: 8px;">${app.category || 'Protutech Suite'}</div>
+          <p style="font-size: 12.5px; color: var(--text-muted); line-height: 1.5; margin: 0;">${app.description || 'Protutech ecosystem elemental application.'}</p>
+        </div>
+      </div>
+
+      <div class="inspector-meta-grid">
+        <div class="inspector-meta-item">
+          <div class="inspector-meta-label">Atomic Number / Order</div>
+          <div class="inspector-meta-value">Element #${atomicNum} in Suite</div>
+        </div>
+        <div class="inspector-meta-item">
+          <div class="inspector-meta-label">Classification Block</div>
+          <div class="inspector-meta-value">${app.category || 'Standard'}</div>
+        </div>
+        <div class="inspector-meta-item">
+          <div class="inspector-meta-label">Resonance URL</div>
+          <div class="inspector-meta-value" style="color: var(--accent-primary); font-family: monospace; font-size: 12px;">${app.url || 'None'}</div>
+        </div>
+        <div class="inspector-meta-item">
+          <div class="inspector-meta-label">Bond Status (System)</div>
+          <div class="inspector-meta-value">
+            ${isBlocked ? '<span style="color: #f87171;">Disallowed by Admin</span>' : (isInstalled ? '<span style="color: var(--color-success);">Ready / Installed</span>' : '<span style="color: var(--color-warning);">Unbonded / Not Installed</span>')}
+          </div>
+        </div>
+        <div class="inspector-meta-item">
+          <div class="inspector-meta-label">Valence Shells (Platforms)</div>
+          <div class="inspector-meta-value">${(app.platforms || ['web']).map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' • ')}</div>
+        </div>
+        <div class="inspector-meta-item">
+          <div class="inspector-meta-label">Priority Pinning</div>
+          <div class="inspector-meta-value">${app.pinned ? 'Pinned to Top' : 'Standard Priority'}</div>
+        </div>
+      </div>
+    `;
+
+    footer.innerHTML = `
+      <button type="button" class="header-btn" onclick="document.getElementById('periodic-inspector-modal').classList.remove('active'); window.ProtutechDash.editApp('${app.id}')" style="margin-right: auto;">
+        ${ICONS.edit} <span>Edit App</span>
+      </button>
+      <button type="button" class="header-btn" onclick="window.ProtutechDash.togglePin('${app.id}'); window.ProtutechDash.inspectElement('${app.id}')">
+        ${ICONS.pin} <span>${app.pinned ? 'Unpin' : 'Pin'}</span>
+      </button>
+      <button type="button" class="header-btn" onclick="window.ProtutechDash.toggleInstalled('${app.id}'); window.ProtutechDash.inspectElement('${app.id}')">
+        ${ICONS.check} <span>${isInstalled ? 'Mark Uninstalled' : 'Mark Installed'}</span>
+      </button>
+      <button type="button" class="header-btn primary" onclick="document.getElementById('periodic-inspector-modal').classList.remove('active'); window.ProtutechDash.launch('${app.id}')">
+        <span>Launch App</span> &rarr;
+      </button>
+    `;
+
+    modal.classList.add('active');
   }
 
   function updateStats() {
@@ -1679,9 +2014,12 @@
     exportConfig,
     importConfig,
     resetToDefaults,
+    inspectElement,
+    setPeriodicSeriesFilter,
     resetFilters: () => {
       currentCategory = 'all';
       currentSearchQuery = '';
+      activePeriodicSeries = 'all';
       if (searchInput) searchInput.value = '';
       document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
       const allItem = document.querySelector('.nav-item[data-cat="all"]');

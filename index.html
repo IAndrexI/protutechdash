@@ -188,11 +188,15 @@
       <!-- Sub Control Bar -->
       <section class="control-subbar">
         <div class="subbar-left">
-          <!-- View Modes (Grid / Compact / List) -->
+          <!-- View Modes (Grid / Compact / List / Periodic Table) -->
           <div class="view-pills">
             <button class="view-pill active" data-view="grid" title="Standard Grid View">Grid</button>
             <button class="view-pill" data-view="compact" title="Compact Grid">Compact</button>
             <button class="view-pill" data-view="list" title="Detailed List View">List</button>
+            <button class="view-pill" data-view="periodic" title="Periodic Table of Protutech Apps View">
+              <svg class="pt-icon pt-icon-sm" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              <span>Periodic Table</span>
+            </button>
           </div>
 
           <!-- Active Device & Platform Compatibility Controls -->
@@ -645,6 +649,27 @@ export default function ProtutechSwitcher() {
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: PERIODIC TABLE ELEMENT INSPECTOR
+       ==================================================================== -->
+  <div class="modal-backdrop" id="periodic-inspector-modal">
+    <div class="modal-box periodic-modal-box" style="max-width: 580px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <svg class="pt-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="2" x2="12" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line></svg>
+          <h2 class="modal-title" id="inspector-element-title">Elemental App Inspector</h2>
+        </div>
+        <button class="modal-close-btn" onclick="document.getElementById('periodic-inspector-modal').classList.remove('active')">&times;</button>
+      </div>
+      <div class="modal-body" id="inspector-modal-body" style="padding: 24px;">
+        <!-- Dynamically populated by src/app.js -->
+      </div>
+      <div class="modal-footer" id="inspector-modal-footer">
+        <!-- Dynamically populated by src/app.js -->
+      </div>
     </div>
   </div>
 
