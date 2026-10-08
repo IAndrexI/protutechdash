@@ -140,6 +140,11 @@
             <span>+</span> Add App
           </button>
 
+          <!-- Add via protutech.vip URL Button -->
+          <button class="header-btn" onclick="window.ProtutechDash.focusUrlInput()" title="Type and detect protutech.vip URL to add app">
+            <span>🔗</span> Add via URL
+          </button>
+
           <!-- In-App Embed Generator Button -->
           <button class="header-btn" onclick="window.ProtutechDash.openEmbedModal()" title="Embed Launcher into your other apps">
             <span>🔌</span> Embed in Apps
@@ -226,6 +231,36 @@
               <div class="stat-value" id="stat-web-apps">0</div>
               <div class="stat-label">Cloud / Web</div>
             </div>
+          </div>
+        </section>
+
+        <!-- Quick Add via protutech.vip URL Bar -->
+        <section class="url-detector-bar" id="url-detector-bar">
+          <div class="domain-lock-badge">
+            <span>🔒</span>
+            <span>protutech.vip Domain Only</span>
+          </div>
+          <div class="url-input-group">
+            <span class="url-input-prefix">🔗</span>
+            <input type="text" id="url-detect-input" placeholder="Type protutech.vip URL (e.g. homebox.protutech.vip, seafile.protutech.vip, or new app)...">
+          </div>
+          <button class="header-btn primary" id="btn-detect-url" onclick="window.ProtutechDash.addAppFromUrlInput()">
+            <span>Detect & Add App</span> &rarr;
+          </button>
+
+          <!-- Quick Discovery Chips for protutech.vip services -->
+          <div class="protutech-chip-row">
+            <span style="font-size: 11px; color: var(--text-dim); font-weight: 600;">Known protutech.vip Apps:</span>
+            <span class="protutech-chip" onclick="window.ProtutechDash.quickAddChip('homebox.protutech.vip')"><span class="dot" style="background:#10B981"></span>homebox</span>
+            <span class="protutech-chip" onclick="window.ProtutechDash.quickAddChip('discopanel.protutech.vip')"><span class="dot" style="background:#8B5CF6"></span>discopanel</span>
+            <span class="protutech-chip" onclick="window.ProtutechDash.quickAddChip('proxmox.protutech.vip')"><span class="dot" style="background:#EA580C"></span>proxmox</span>
+            <span class="protutech-chip" onclick="window.ProtutechDash.quickAddChip('pelican.protutech.vip')"><span class="dot" style="background:#E11D48"></span>pelican</span>
+            <span class="protutech-chip" onclick="window.ProtutechDash.quickAddChip('seafile.protutech.vip')"><span class="dot" style="background:#0284C7"></span>seafile</span>
+            <span class="protutech-chip" onclick="window.ProtutechDash.quickAddChip('vw.protutech.vip')"><span class="dot" style="background:#2563EB"></span>vaultwarden</span>
+            <span class="protutech-chip" onclick="window.ProtutechDash.quickAddChip('file.protutech.vip')"><span class="dot" style="background:#F59E0B"></span>file</span>
+            <span class="protutech-chip" onclick="window.ProtutechDash.quickAddChip('nade.protutech.vip')"><span class="dot" style="background:#06B6D4"></span>nade</span>
+            <span class="protutech-chip" onclick="window.ProtutechDash.quickAddChip('mail.protutech.vip')"><span class="dot" style="background:#D946EF"></span>mail</span>
+            <span class="protutech-chip" onclick="window.ProtutechDash.quickAddChip('sl.protutech.vip')"><span class="dot" style="background:#3B82F6"></span>simplelogin</span>
           </div>
         </section>
 

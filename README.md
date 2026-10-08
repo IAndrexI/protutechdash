@@ -28,6 +28,12 @@
     - **Sunset Ember** (Warm obsidian with amber/rose accents)
   - Color pickers and real-time live preview.
 
+- 🔗 **Smart URL App Detection (`protutech.vip` Domain Locked)**:
+  - Type or paste any `*.protutech.vip` URL (e.g. `homebox.protutech.vip`, `seafile.protutech.vip`, or any future subdomain) directly into the dashboard detector.
+  - **Strict Domain Whitelist**: Enforces that only services on the `protutech.vip` domain are analyzed or added, strictly rejecting foreign or external websites.
+  - **Auto-Derivation**: Automatically maps subdomains to their service metadata (Name, 2-letter Adobe mnemonic badge, Category, Theme color, and Supported platforms).
+  - Automatically scrolls to and highlights existing apps with a glowing pulse animation if already present, or creates a new card if newly discovered.
+
 - 🔒 **Security Whitelist (Launch Only My Apps)**:
   - Whitelist mechanism guaranteeing the launcher **only opens authorized Protutech apps and endpoints** (`*.protutech.vip`, `protutech://`, local environments), preventing external malicious injections.
 

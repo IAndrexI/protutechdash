@@ -150,6 +150,265 @@
   }
 
   // ==========================================================================
+  // PROTUTECH.VIP ECOSYSTEM REGISTRY & URL DETECTOR
+  // ==========================================================================
+  const PROTUTECH_SERVICES_REGISTRY = {
+    'homebox': {
+      id: 'protutech-homebox',
+      name: 'Protutech Homebox',
+      code: 'Hb',
+      category: 'Productivity & Tools',
+      description: 'Hardware inventory, asset tracking, home infrastructure and equipment database manager.',
+      color: '#10B981',
+      platforms: ['web', 'mobile', 'desktop'],
+      installed: true
+    },
+    'discopanel': {
+      id: 'protutech-discopanel',
+      name: 'Protutech DiscoPanel',
+      code: 'Dp',
+      category: 'Community & Gaming',
+      description: 'Central bot operations center, automation triggers, webhook pipelines, and server controls.',
+      color: '#8B5CF6',
+      platforms: ['web', 'mobile'],
+      installed: true
+    },
+    'proxmox': {
+      id: 'protutech-proxmox',
+      name: 'Protutech Proxmox VE',
+      code: 'Px',
+      category: 'DevOps & Infrastructure',
+      description: 'Virtualization hypervisor, LXC container orchestration, cluster monitoring, and VM remote console.',
+      color: '#EA580C',
+      platforms: ['web', 'desktop'],
+      installed: true
+    },
+    'pelican': {
+      id: 'protutech-pelican',
+      name: 'Protutech Pelican Panel',
+      code: 'Pl',
+      category: 'DevOps & Infrastructure',
+      description: 'Next-generation game server daemon and node controller panel with real-time resource diagnostics.',
+      color: '#E11D48',
+      platforms: ['web', 'desktop', 'mobile'],
+      installed: true
+    },
+    'seafile': {
+      id: 'protutech-seafile',
+      name: 'Protutech Seafile Drive',
+      code: 'Sf',
+      category: 'Cloud & Storage',
+      description: 'Encrypted enterprise cloud file synchronization, shared libraries, and high-speed multi-gigabit storage.',
+      color: '#0284C7',
+      platforms: ['web', 'desktop', 'mobile'],
+      installed: true
+    },
+    'vw': {
+      id: 'protutech-vaultwarden',
+      name: 'Protutech Vaultwarden',
+      code: 'Vw',
+      category: 'Security & Identity',
+      description: 'Zero-knowledge end-to-end encrypted password vault, API key manager, and 2FA credential sync.',
+      color: '#2563EB',
+      platforms: ['web', 'desktop', 'mobile'],
+      installed: true
+    },
+    'file': {
+      id: 'protutech-file',
+      name: 'Protutech Direct Files',
+      code: 'Fl',
+      category: 'Cloud & Storage',
+      description: 'High-throughput direct file gateway, public drop-zones, and fast streaming media repository.',
+      color: '#F59E0B',
+      platforms: ['web', 'mobile'],
+      installed: true
+    },
+    'nade': {
+      id: 'protutech-nade',
+      name: 'Protutech Nade Tunnels',
+      code: 'Nd',
+      category: 'DevOps & Infrastructure',
+      description: 'Edge routing nodes, Cloudflare Argo tunnel monitor, and internal network gateways.',
+      color: '#06B6D4',
+      platforms: ['web', 'desktop'],
+      installed: true
+    },
+    'mail': {
+      id: 'protutech-mail',
+      name: 'Protutech Mail Portal',
+      code: 'Ml',
+      category: 'Productivity & Tools',
+      description: 'Enterprise Brevo authenticated email gateway, domain routing, and newsletter dispatch center.',
+      color: '#D946EF',
+      platforms: ['web', 'mobile'],
+      installed: false
+    },
+    'email': {
+      id: 'protutech-mail',
+      name: 'Protutech Mail Portal',
+      code: 'Ml',
+      category: 'Productivity & Tools',
+      description: 'Enterprise Brevo authenticated email gateway, domain routing, and newsletter dispatch center.',
+      color: '#D946EF',
+      platforms: ['web', 'mobile'],
+      installed: false
+    },
+    'sl': {
+      id: 'protutech-sl',
+      name: 'Protutech SimpleLogin',
+      code: 'Sl',
+      category: 'Security & Identity',
+      description: 'Private email alias gateway and identity cloak routing for secure correspondence.',
+      color: '#3B82F6',
+      platforms: ['web', 'mobile'],
+      installed: true
+    }
+  };
+
+  /**
+   * Strictly validates that the URL belongs to protutech.vip domain
+   * and parses/derives app metadata.
+   */
+  function validateAndParseProtutechUrl(rawInput) {
+    if (!rawInput || typeof rawInput !== 'string') {
+      return { valid: false, error: 'Please enter a valid URL.' };
+    }
+
+    let input = rawInput.trim();
+    if (!input.startsWith('http://') && !input.startsWith('https://')) {
+      input = 'https://' + input;
+    }
+
+    let urlObj;
+    try {
+      urlObj = new URL(input);
+    } catch (e) {
+      return { valid: false, error: 'Invalid URL format.' };
+    }
+
+    const host = urlObj.hostname.toLowerCase();
+
+    // STRICT CHECK: ONLY protutech.vip or its subdomains (*.protutech.vip)
+    if (host !== 'protutech.vip' && !host.endsWith('.protutech.vip')) {
+      return {
+        valid: false,
+        error: `Domain "${host}" rejected. Only services on the "protutech.vip" domain are permitted.`
+      };
+    }
+
+    // Extract subdomain
+    let subdomain = '';
+    if (host.endsWith('.protutech.vip')) {
+      subdomain = host.replace('.protutech.vip', '').split('.').pop();
+    } else {
+      subdomain = 'main';
+    }
+
+    // Check if in known registry
+    if (PROTUTECH_SERVICES_REGISTRY[subdomain]) {
+      const known = PROTUTECH_SERVICES_REGISTRY[subdomain];
+      return {
+        valid: true,
+        subdomain,
+        canonicalUrl: `https://${host}`,
+        app: {
+          ...known,
+          url: `https://${host}`,
+          protocol: `https://${host}`
+        }
+      };
+    }
+
+    // Dynamic derivation for future apps on *.protutech.vip
+    const formattedTitle = 'Protutech ' + subdomain.split(/[-_]/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    const code = subdomain.substring(0, 2).toUpperCase();
+    
+    // Aesthetic color generation from name hash
+    const colors = ['#00F2FE', '#38BDF8', '#818CF8', '#A855F7', '#EC4899', '#10B981', '#F59E0B', '#06B6D4'];
+    let hash = 0;
+    for (let i = 0; i < subdomain.length; i++) hash = subdomain.charCodeAt(i) + ((hash << 5) - hash);
+    const chosenColor = colors[Math.abs(hash) % colors.length];
+
+    return {
+      valid: true,
+      subdomain,
+      canonicalUrl: `https://${host}`,
+      app: {
+        id: `protutech-${subdomain}`,
+        name: formattedTitle,
+        code: code,
+        category: 'Productivity & Tools',
+        description: `Dedicated ${formattedTitle} application hosted on ${host}.`,
+        url: `https://${host}`,
+        protocol: `https://${host}`,
+        desktopPath: '',
+        color: chosenColor,
+        platforms: ['web', 'mobile', 'desktop'],
+        installed: true,
+        pinned: false,
+        hidden: false
+      }
+    };
+  }
+
+  /**
+   * Adds or focuses an app based on a typed protutech.vip URL
+   */
+  function addOrFocusAppFromUrl(rawUrl) {
+    const parseResult = validateAndParseProtutechUrl(rawUrl);
+    if (!parseResult.valid) {
+      alert(`[Domain Restriction Error]\n\n${parseResult.error}`);
+      showToast(`❌ ${parseResult.error}`);
+      return false;
+    }
+
+    const detectedApp = parseResult.app;
+    const existing = apps.find(a => 
+      (a.url && a.url.toLowerCase() === detectedApp.url.toLowerCase()) || 
+      a.id === detectedApp.id
+    );
+
+    if (existing) {
+      // Unhide if was hidden
+      existing.hidden = false;
+      saveApps();
+      render();
+
+      // Smooth scroll and flash highlight
+      setTimeout(() => {
+        const card = document.querySelector(`.app-card[data-id="${existing.id}"]`);
+        if (card) {
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          card.classList.add('card-flash-highlight');
+          setTimeout(() => card.classList.remove('card-flash-highlight'), 1600);
+        }
+      }, 100);
+
+      showToast(`✨ Focused existing app: "${existing.name}"`);
+      return true;
+    }
+
+    // New app: append to apps
+    detectedApp.order = apps.length;
+    apps.push(detectedApp);
+    saveApps();
+    render();
+
+    // Scroll and flash highlight
+    setTimeout(() => {
+      const card = document.querySelector(`.app-card[data-id="${detectedApp.id}"]`);
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.add('card-flash-highlight');
+        setTimeout(() => card.classList.remove('card-flash-highlight'), 1600);
+      }
+    }, 100);
+
+    showToast(`🚀 Added "${detectedApp.name}" (${parseResult.subdomain}.protutech.vip) to your dashboard!`);
+    return true;
+  }
+
+  // ==========================================================================
   // LAUNCH SECURITY & EXECUTION
   // ==========================================================================
   function isApprovedApp(app) {
@@ -938,6 +1197,40 @@
       });
     });
 
+    // URL Detect input listeners
+    const urlDetectInput = document.getElementById('url-detect-input');
+    if (urlDetectInput) {
+      urlDetectInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const val = urlDetectInput.value.trim();
+          if (val) addOrFocusAppFromUrl(val);
+        }
+      });
+    }
+
+    // Modal Form URL Auto-Fill on protutech.vip domain input
+    const formUrlInput = document.getElementById('form-app-url');
+    if (formUrlInput) {
+      formUrlInput.addEventListener('input', (e) => {
+        const val = e.target.value.trim();
+        if (val.includes('protutech.vip')) {
+          const parsed = validateAndParseProtutechUrl(val);
+          if (parsed.valid && parsed.app) {
+            const currentName = document.getElementById('form-app-name').value;
+            if (!currentName) {
+              document.getElementById('form-app-name').value = parsed.app.name;
+              document.getElementById('form-app-code').value = parsed.app.code;
+              document.getElementById('form-app-category').value = parsed.app.category;
+              document.getElementById('form-app-color').value = parsed.app.color;
+              document.getElementById('form-app-desc').value = parsed.app.description;
+              updateBadgeLivePreview();
+            }
+          }
+        }
+      });
+    }
+
     // Global Keyboard Shortcuts
     window.addEventListener('keydown', (e) => {
       // Escape closes open modals
@@ -995,6 +1288,28 @@
     install: (id) => {
       const a = apps.find(x => x.id === id);
       if (a) window.open(a.installUrl || a.url, '_blank');
+    },
+    addAppFromUrlInput: () => {
+      const el = document.getElementById('url-detect-input');
+      if (el && el.value.trim()) {
+        addOrFocusAppFromUrl(el.value.trim());
+      } else {
+        alert('Please enter a protutech.vip URL (e.g. homebox.protutech.vip)');
+      }
+    },
+    quickAddChip: (subdomainUrl) => {
+      const el = document.getElementById('url-detect-input');
+      if (el) el.value = subdomainUrl;
+      addOrFocusAppFromUrl(subdomainUrl);
+    },
+    focusUrlInput: () => {
+      const bar = document.getElementById('url-detector-bar');
+      const input = document.getElementById('url-detect-input');
+      if (bar && input) {
+        bar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        input.focus();
+        input.select();
+      }
     },
     togglePin,
     toggleHide,
