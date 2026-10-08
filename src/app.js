@@ -18,6 +18,29 @@
   const STORAGE_KEY_DISALLOWED_SITES = 'protutech_admin_disallowed_sites';
   const STORAGE_KEY_ADMIN_PREVIEW = 'protutech_admin_preview';
 
+  // Unified Monochrome SVG Vector Icons (Single consistent stroke & color)
+  const ICONS = {
+    desktop: `<svg class="pt-icon pt-icon-sm" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>`,
+    mobile: `<svg class="pt-icon pt-icon-sm" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>`,
+    web: `<svg class="pt-icon pt-icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>`,
+    pin: `<svg class="pt-icon pt-icon-sm" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`,
+    eye: `<svg class="pt-icon pt-icon-sm" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`,
+    eyeOff: `<svg class="pt-icon pt-icon-sm" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`,
+    edit: `<svg class="pt-icon pt-icon-sm" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`,
+    moveLeft: `<svg class="pt-icon pt-icon-sm" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>`,
+    moveRight: `<svg class="pt-icon pt-icon-sm" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>`,
+    check: `<svg class="pt-icon pt-icon-sm" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
+    runner: `<svg class="pt-icon pt-icon-sm" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>`,
+    sun: `<svg class="pt-icon pt-icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`,
+    moon: `<svg class="pt-icon pt-icon-sm" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`,
+    search: `<svg class="pt-icon pt-icon-lg" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`,
+    shield: `<svg class="pt-icon pt-icon-sm" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>`,
+    lock: `<svg class="pt-icon pt-icon-sm" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`,
+    ban: `<svg class="pt-icon pt-icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>`,
+    alert: `<svg class="pt-icon pt-icon-sm" viewBox="0 0 24 24"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`,
+    info: `<svg class="pt-icon pt-icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`
+  };
+
   // State
   let apps = [];
   let disallowedSites = JSON.parse(localStorage.getItem(STORAGE_KEY_DISALLOWED_SITES) || '[]');
@@ -81,10 +104,10 @@
     const actual = detectActualPlatform();
     const effective = getEffectivePlatform();
     if (activeDeviceBadge) {
-      activeDeviceBadge.textContent = effective === 'mobile' ? '📱 Mobile' : '💻 Desktop';
-      if (simulatedPlatform !== 'auto') {
-        activeDeviceBadge.textContent += ' (Simulated)';
-      }
+      const icon = effective === 'mobile' ? ICONS.mobile : ICONS.desktop;
+      const label = effective === 'mobile' ? 'Mobile' : 'Desktop';
+      const simText = simulatedPlatform !== 'auto' ? ' (Simulated)' : '';
+      activeDeviceBadge.innerHTML = `${icon} <span>${label}${simText}</span>`;
     }
   }
 
@@ -392,7 +415,7 @@
     const parseResult = validateAndParseProtutechUrl(rawUrl);
     if (!parseResult.valid) {
       alert(`[Domain Restriction Error]\n\n${parseResult.error}`);
-      showToast(`❌ ${parseResult.error}`);
+      showToast(parseResult.error, 'error');
       return false;
     }
 
@@ -418,7 +441,7 @@
         }
       }, 100);
 
-      showToast(`✨ Focused existing app: "${existing.name}"`);
+      showToast(`Focused existing app: "${existing.name}"`);
       return true;
     }
 
@@ -438,7 +461,7 @@
       }
     }, 100);
 
-    showToast(`🚀 Added "${detectedApp.name}" (${parseResult.subdomain}.protutech.vip) to your dashboard!`);
+    showToast(`Added "${detectedApp.name}" (${parseResult.subdomain}.protutech.vip) to suite`);
     return true;
   }
 
@@ -488,7 +511,7 @@
           body: JSON.stringify({ appId: app.id, appPath: app.desktopPath, url: app.url })
         });
         if (res.ok) {
-          showToast(`🚀 Launched ${app.name} via Local Desktop Bridge!`);
+          showToast(`Launched ${app.name} via Local Desktop Bridge`);
           return;
         }
       } catch (e) {
@@ -578,7 +601,7 @@
     if (visibleApps.length === 0) {
       appsGrid.innerHTML = `
         <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-dim);">
-          <div style="font-size: 40px; margin-bottom: 12px;">🔍</div>
+          <div style="margin-bottom: 12px; display: flex; justify-content: center; color: var(--text-dim);">${ICONS.search}</div>
           <h3 style="font-size: 18px; color: var(--text-muted); margin-bottom: 8px;">No Apps Found</h3>
           <p style="font-size: 13.5px;">No applications match the current filter or search criteria.</p>
           <button class="header-btn primary" style="margin-top: 16px;" onclick="window.ProtutechDash.resetFilters()">Reset All Filters</button>
@@ -609,18 +632,18 @@
 
       // Platform Badges
       const platformTagsHtml = (app.platforms || []).map(p => {
-        const icon = p === 'desktop' ? '💻' : (p === 'mobile' ? '📱' : '🌐');
+        const icon = p === 'desktop' ? ICONS.desktop : (p === 'mobile' ? ICONS.mobile : ICONS.web);
         return `<span class="platform-tag">${icon} ${p}</span>`;
       }).join('');
 
       // Status Badge
       let statusBadgeHtml = '';
       if (isBlocked) {
-        statusBadgeHtml = '<span class="status-badge not-installed" style="color:#f87171; border-color:rgba(239,68,68,0.5);">🚫 Disallowed</span>';
+        statusBadgeHtml = `<span class="status-badge not-installed" style="color:var(--text-muted); border-color:var(--border-subtle); display: inline-flex; align-items: center; gap: 4px;">${ICONS.ban} Disallowed</span>`;
       } else if (!isInstalled) {
         statusBadgeHtml = '<span class="status-badge not-installed">Not Installed</span>';
       } else if (!isPlatformCompatible) {
-        statusBadgeHtml = `<span class="status-badge incompatible">⚠️ ${effectivePlatform === 'mobile' ? 'Desktop' : 'Mobile'} Only</span>`;
+        statusBadgeHtml = `<span class="status-badge incompatible" style="display: inline-flex; align-items: center; gap: 4px;">${ICONS.alert} ${effectivePlatform === 'mobile' ? 'Desktop' : 'Mobile'} Only</span>`;
       } else {
         statusBadgeHtml = '<span class="status-badge installed">Ready</span>';
       }
@@ -633,7 +656,7 @@
             <span>Launch</span> &rarr;
           </button>
           <button class="btn-more-options" onclick="window.ProtutechDash.launchInApp('${app.id}')" title="Open inside Protutech runner window">
-            <span>⛶</span>
+            ${ICONS.runner}
           </button>
         `;
       } else {
@@ -642,7 +665,7 @@
             <span>Install / Setup</span>
           </button>
           <button class="btn-more-options" onclick="window.ProtutechDash.toggleInstalled('${app.id}')" title="Mark as Installed on this machine">
-            <span>✓</span>
+            ${ICONS.check}
           </button>
         `;
       }
@@ -664,27 +687,27 @@
               <button class="quick-icon-btn ${app.pinned ? 'pinned' : ''}" 
                       onclick="window.ProtutechDash.togglePin('${app.id}')" 
                       title="${app.pinned ? 'Unpin from Top' : 'Pin to Top'}">
-                ${app.pinned ? '📌' : '📍'}
+                ${ICONS.pin}
               </button>
               <button class="quick-icon-btn" 
                       onclick="window.ProtutechDash.toggleHide('${app.id}')" 
                       title="Hide App">
-                👁️
+                ${ICONS.eyeOff}
               </button>
               <button class="quick-icon-btn" 
                       onclick="window.ProtutechDash.editApp('${app.id}')" 
                       title="Edit App Details">
-                ✏️
+                ${ICONS.edit}
               </button>
               <button class="quick-icon-btn" 
                       onclick="window.ProtutechDash.moveOrder('${app.id}', -1)" 
                       title="Move Left/Up">
-                ◀
+                ${ICONS.moveLeft}
               </button>
               <button class="quick-icon-btn" 
                       onclick="window.ProtutechDash.moveOrder('${app.id}', 1)" 
                       title="Move Right/Down">
-                ▶
+                ${ICONS.moveRight}
               </button>
             </div>
           </div>
@@ -754,10 +777,10 @@
     const adminHeaderText = document.getElementById('header-admin-text');
     if (adminHeaderIcon && adminHeaderText) {
       if (isAdminUnlocked) {
-        adminHeaderIcon.textContent = '🛡️';
+        adminHeaderIcon.innerHTML = ICONS.shield;
         adminHeaderText.textContent = 'Admin (Unlocked)';
       } else {
-        adminHeaderIcon.textContent = '🔒';
+        adminHeaderIcon.innerHTML = ICONS.lock;
         adminHeaderText.textContent = 'Admin';
       }
     }
@@ -845,7 +868,7 @@
     app.pinned = !app.pinned;
     saveApps();
     render();
-    showToast(app.pinned ? `📌 Pinned ${app.name} to top` : `Unpinned ${app.name}`);
+    showToast(app.pinned ? `Pinned ${app.name} to top` : `Unpinned ${app.name}`);
   }
 
   function toggleHide(appId) {
@@ -854,7 +877,7 @@
     app.hidden = true;
     saveApps();
     render();
-    showToast(`👁️ Hidden ${app.name}. Restore anytime from "Manage Hidden".`);
+    showToast(`Hidden ${app.name}. Restore anytime from "Hidden Apps".`);
   }
 
   function toggleInstalled(appId) {
@@ -863,7 +886,7 @@
     app.installed = !app.installed;
     saveApps();
     render();
-    showToast(app.installed ? `✓ Marked ${app.name} as Installed` : `Marked ${app.name} as Not Installed`);
+    showToast(app.installed ? `Marked ${app.name} as Installed` : `Marked ${app.name} as Not Installed`);
   }
 
   // ==========================================================================
@@ -1084,7 +1107,7 @@
       document.getElementById('admin-panel-screen').style.display = 'block';
       renderAdminDisallowList();
       updateStats();
-      showToast('🛡️ Admin Mode Unlocked');
+      showToast('Admin Mode Unlocked');
     } else {
       alert('Incorrect Admin Passkey. Please try again.');
       pinInput.value = '';
@@ -1103,7 +1126,7 @@
     if (panelScreen) panelScreen.style.display = 'none';
     updateStats();
     render();
-    showToast('🔒 Admin Mode Locked');
+    showToast('Admin Mode Locked');
   }
 
   function renderAdminDisallowList() {
@@ -1155,7 +1178,7 @@
         serviceMap.set(blockedItem, {
           id: blockedItem,
           name: blockedItem,
-          code: '🚫',
+          code: 'BLK',
           color: '#ef4444',
           domain: blockedItem,
           subdomain: blockedItem
@@ -1214,7 +1237,7 @@
     renderAdminDisallowList();
     render();
     updateStats();
-    showToast(shouldDisallow ? `🚫 Disallowed "${cleanKey}" from suite list` : `✓ Allowed "${cleanKey}" in suite list`);
+    showToast(shouldDisallow ? `Disallowed "${cleanKey}" from suite list` : `Allowed "${cleanKey}" in suite list`);
   }
 
   function addCustomDisallow() {
@@ -1234,7 +1257,7 @@
       renderAdminDisallowList();
       render();
       updateStats();
-      showToast(`🚫 Disallowed "${normalized}"`);
+      showToast(`Disallowed "${normalized}"`);
     } else {
       alert(`"${normalized}" is already on the disallowed list.`);
     }
@@ -1298,7 +1321,7 @@
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem(STORAGE_KEY_THEME, theme);
     if (themeToggleBtn) {
-      themeToggleBtn.innerHTML = theme === 'dark' ? '☀️ Light' : '🌙 Dark';
+      themeToggleBtn.innerHTML = theme === 'dark' ? `${ICONS.sun} <span>Light</span>` : `${ICONS.moon} <span>Dark</span>`;
     }
   }
 
@@ -1372,7 +1395,7 @@
   // ==========================================================================
   // TOAST NOTIFICATIONS
   // ==========================================================================
-  function showToast(msg) {
+  function showToast(msg, type = 'info') {
     let toast = document.getElementById('pt-toast');
     if (!toast) {
       toast = document.createElement('div');
@@ -1382,7 +1405,7 @@
         bottom: 24px;
         right: 24px;
         background: #0f172a;
-        color: #f87171;
+        color: #f8fafc;
         border: 1px solid rgba(0, 242, 254, 0.4);
         padding: 12px 20px;
         border-radius: 10px;
@@ -1394,11 +1417,16 @@
         opacity: 0;
         transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         pointer-events: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
       `;
       document.body.appendChild(toast);
     }
-    toast.textContent = msg;
-    toast.style.color = msg.startsWith('❌') || msg.startsWith('🚫') ? '#f87171' : '#f8fafc';
+    const icon = type === 'error' ? ICONS.ban : (type === 'success' ? ICONS.check : ICONS.info);
+    toast.innerHTML = `${icon} <span>${msg}</span>`;
+    toast.style.color = type === 'error' ? '#f87171' : '#f8fafc';
+    toast.style.borderColor = type === 'error' ? 'rgba(239, 68, 68, 0.4)' : 'rgba(0, 242, 254, 0.4)';
     toast.style.transform = 'translateY(0)';
     toast.style.opacity = '1';
     clearTimeout(toast._timeout);
